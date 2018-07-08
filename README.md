@@ -1,3 +1,2 @@
-# Spigotdockerfile
-
-This is a dockerfile for a spigot server I'm trying to deploy to openshift. It's not illegal, it uses the build tools from spigot. 
+#Spigot docker image
+this is a spigot docker image. it's far from finished but I'm working on it. 
