@@ -6,7 +6,15 @@ DROPBOXPASSWORD=$(cat ./password.txt)
 
 if [ "$ACCOUNTPASSWORD" =  "$DROPBOXPASSWORD" ]
 then #weiter
-#killall
+echo "Account verified"
+else
+
+while :
+do
+echo "Username already taken or wrong password!"
+sleep 10
+done
+
 fi
 
 
