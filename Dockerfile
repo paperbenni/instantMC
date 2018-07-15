@@ -15,7 +15,6 @@ chmod +x ./ix && \
 ./ix -h
 
 COPY ngrok ngrok
-COPY .netrc .netrc
 COPY rclone.conf .config/rclone/rclone.conf
 COPY rclone rclone
 COPY start.sh start.sh
