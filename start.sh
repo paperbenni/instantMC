@@ -1,72 +1,67 @@
 #!/bin/bash
+cd $HOME
 
 #import functions
-curl "https://raw.githubusercontent.com/paperbenni/bash/master/bash.sh" > .bashfunctions.sh
-source .bashfunctions.sh
+pb() {
+    if [ -z "$@" ]; then
+        echo "usage: pb bashfile"
+    fi
+    for FILE in "$@"; do
+        curl "https://raw.githubusercontent.com/paperbenni/bash/master/bash/$1" >temp.sh
+        source temp.sh
+        rm temp.sh
+    done
+}
 
-#setup ix.io account
-echo "machine ix.io" > .netrc
-echo "    login $ACCOUNTNAME" >> .netrc
-echo "    password $ACCOUNTPASSWORD" >> .netrc
+pb bash/bash.sh
+pb ngrok/ngrok.sh
+pb ix/ix.sh
+pb rclone/login.sh
+pb spigot/spigot.sh
 
-mkdir .ngrok2
-
-gitexe ngrok.sh ngrok &
-
-while :
-do
-        gitexe ngrok.sh getgrok &
-        mv ngrokadress.txt ix.txt
-        gitexe ix.io ix
-        IXID=$(cat ixid.txt)
-        echo "Your Server ID is $IXID"
-        sleep 2m
-done &
-
-echo "attempting login"
-
-
-mkcd "$ACCOUNTNAME"
-
-rclone copy dropbox:"$ACCOUNTNAME"/password.txt ./
-
-if [ -e password.txt ]; then #account exists
-        DROPBOXPASSWORD=$(cat ./password.txt)
-        if [ "$ACCOUNTPASSWORD" = "$DROPBOXPASSWORD" ] #password correct
-        then
-                echo "login successfull!"
-                rclone copy dropbox:"$ACCOUNTNAME" ./"$ACCOUNTNAME" #download account data
-        else #wrong password
-                yess "wrong password or Username already taken"
-        fi
-else #make new account
-    mkdir -p spigot/plugins
-    echo "$ACCOUNTPASSWORD" > password.txt
-    rclone copy ../"$ACCOUNTNAME" dropbox:"$ACCOUNTNAME"
-    echo "Account $ACCOUNTNAME created!"
+# set up mega account
+if [ -z "$MEGANAME" ] &&
+    [ -z "$MEGAPASS" ]; then
+    rmega "$MEGANAME" "$MEGAPASS"
 fi
 
+#ix.io account
+ixlogin "$ACCOUNTNAME" "$ACCOUNTPASSWORD"
 
-cd spigot || ( mkdir -p spigot && cd spigot || echo "bruh" )
+if ! rlogin "$ACCOUNTNAME" "$ACCOUNTPASSWORD"; then
+    echo "mega login failed"
+    exit 1
+fi
 
+ngrok tcp 25565 &
 
-while :
-do #start spigot
-        gitexe spigot.sh spigot
-        rm -rf cache
-        rm spigot.jar
-        rclone copy ../../"$ACCOUNTNAME" dropbox:"$ACCOUNTNAME"
-        echo "restarting loop"
-        sleep 5
-        if [ -n "$GITREPO" ]
-        then
-                echo "$GITREPO" > git.txt
-                gitexe spigot.sh override
-        fi
-        sleep 2
+while :; do
+    ixrun $(getgrok)
+    echo "Your Server ID is $(cat ixid.txt)"
+    sleep 2m
+done &
 
+#weiter
+rdl spigot
+cd spigot
+while :; do #start spigot
+    if [ -e ../spigot.jar ]; then
+        mv ../spigot.jar ./
+    else
+        wget -O spigot.jar https://papermc.io/api/v1/paper/1.13.2/561/download
+    fi
+    echo "eula=true" >eula.txt
+    spigexe
+    mv spigot.jar ../
+    mv -r cache/ ../
+    cd ..
+    rupl spigot
+    sleep 1
+    mv spigot.jar spigot/
+    mv -r cache spigot/
+    echo "restarting server"
+    sleep 2
 done
 
 echo 'quitting server :('
 #end of script
-
