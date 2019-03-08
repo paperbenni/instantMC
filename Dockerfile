@@ -1,8 +1,8 @@
-FROM java:8-jre-alpine
+FROM paperbenni/alpine
 
 RUN chmod 777 /etc/passwd
 
-RUN apk update && apk upgrade && apk add curl grep bash jq unzip man sed
+RUN apk add --update curl grep bash jq unzip man sed openjdk8
 
 RUN mkdir /home/mineuser
 ENV HOME=/home/mineuser

@@ -1,18 +1,6 @@
 #!/bin/bash
 cd $HOME
 
-#import functions
-pb() {
-    if [ -z "$@" ]; then
-        echo "usage: pb bashfile"
-    fi
-    for FILE in "$@"; do
-        curl "https://raw.githubusercontent.com/paperbenni/bash/master/bash/$1" >temp.sh
-        source temp.sh
-        rm temp.sh
-    done
-}
-
 pb bash/bash.sh
 pb ngrok/ngrok.sh
 pb ix/ix.sh
@@ -33,12 +21,14 @@ if ! rlogin "$ACCOUNTNAME" "$ACCOUNTPASSWORD"; then
     exit 1
 fi
 
-ngrok tcp 25565 &
+rungrok tcp 25565 &
 
 while :; do
-    ixrun $(getgrok)
+    sleep 20
+    getgrok
+    ixrun $(cat ngrokadress.txt)
     echo "Your Server ID is $(cat ixid.txt)"
-    sleep 2m
+    sleep 5m
 done &
 
 #weiter
