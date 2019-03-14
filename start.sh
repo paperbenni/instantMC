@@ -1,22 +1,30 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 cd $HOME
+source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import.sh)
 
 pb bash/bash.sh
 pb ngrok/ngrok.sh
 pb ix/ix.sh
 pb rclone/login.sh
+pb rclone/rclone.sh
 pb spigot/spigot.sh
 
-# set up mega account
-if [ -z "$MEGANAME" ] &&
-    [ -z "$MEGAPASS" ]; then
+# set up optional rclone mega account
+if [ -n "$MEGANAME" ] &&
+    [ -n "$MEGAPASS" ]; then
     rmega "$MEGANAME" "$MEGAPASS"
 fi
 
-#ix.io account
-ixlogin "$ACCOUNTNAME" "$ACCOUNTPASSWORD"
+if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+    USERNAME="paperbennitestspigot"
+    PASSWORD="paperbennitestspigot"
+fi
 
-if ! rlogin "$ACCOUNTNAME" "$ACCOUNTPASSWORD"; then
+#ix.io account
+ixlogin "${USERNAME}spigotdocker" "${PASSWORD}spigotdocker"
+
+if ! rlogin "$USERNAME" "$PASSWORD"; then
     echo "mega login failed"
     exit 1
 fi
@@ -26,8 +34,13 @@ rungrok tcp 25565 &
 while :; do
     sleep 20
     getgrok
+    rdl ixid.txt
     ixrun $(cat ngrokadress.txt)
     echo "Your Server ID is $(cat ixid.txt)"
+    echo "Your Server link is http://ix.io/$(cat ixid.txt)"
+    echo "Your Server IP is $(cat ngrokadress.txt)"
+
+    rupl ixid.txt
     sleep 5m
 done &
 
@@ -37,8 +50,6 @@ cd spigot
 while :; do #start spigot
     if [ -e ../spigot.jar ]; then
         mv ../spigot.jar ./
-    else
-        wget -O spigot.jar https://papermc.io/api/v1/paper/1.13.2/561/download
     fi
     echo "eula=true" >eula.txt
     spigexe
