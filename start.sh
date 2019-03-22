@@ -22,44 +22,49 @@ if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
 fi
 
 #ix.io account
-ixlogin "${USERNAME}spigotdocker" "${PASSWORD}spigotdocker"
+ixlogin
 
-if ! rlogin "$USERNAME" "$PASSWORD"; then
+if ! rclogin "$USERNAME" "$PASSWORD"; then
     echo "mega login failed"
     exit 1
 fi
-
-rungrok tcp 25565 &
-
+echo "starting ngrok"
+rungrok tcp 25565 &>/dev/null &
+sleep 5
 while :; do
     sleep 20
-    getgrok
     rdl ixid.txt
-    ixrun $(cat ngrokadress.txt)
+    NGROKADRESS=$(getgrok)
+    ixrun "$NGROKADRESS"
     echo "Your Server ID is $(cat ixid.txt)"
     echo "Your Server link is http://ix.io/$(cat ixid.txt)"
-    echo "Your Server IP is $(cat ngrokadress.txt)"
-
+    echo "Your Server IP is $(getgrok)"
     rupl ixid.txt
     sleep 5m
 done &
 
 #weiter
 rdl spigot
-cd spigot
+mkdir spigot
+
 while :; do #start spigot
+    cd spigot
     if [ -e ../spigot.jar ]; then
         mv ../spigot.jar ./
     fi
     echo "eula=true" >eula.txt
     spigexe
+    echo "spigot exited"
+    echo "moving spigot"
     mv spigot.jar ../
-    mv -r cache/ ../
+    echo "moving cache"
+    mv cache/ ../
     cd ..
     rupl spigot
     sleep 1
+    echo "moving stuff back in"
     mv spigot.jar spigot/
-    mv -r cache spigot/
+    mv cache spigot/
     echo "restarting server"
     sleep 2
 done
