@@ -10,8 +10,8 @@ ENV HOME=/home/mineuser
 
 WORKDIR /home/mineuser
 
+COPY .netrc .netrc
 COPY rclone.conf .config/rclone/rclone.conf
-COPY rclone rclone
 COPY start.sh start.sh
 ENV PATH="/home/mineuser/rclone:${PATH}"
 RUN  chmod -R 777 /home/mineuser
