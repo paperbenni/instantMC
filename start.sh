@@ -2,19 +2,31 @@
 cd
 #import functions
 source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import.sh)
+
 pb bash/bash.sh
-pb ix/ix.io
-spigot/spigot.sh
+pb ix/ix.sh
+pb ngrok/ngrok.sh
+pb rclone/login.sh
+pb rclone/rclone.sh
+pb spigot/spigot.sh
 
 rclogin spigot "$USERNAME" "$PASSWORD"
 
 rdl ixid.txt
 
-rungrok 25565 &
+rungrok tcp 25565 &
+
+sleep 1
+waitgrok
 
 while :; do
     ixrun $(getgrok)
-    echo "your id is $(cat ixid.txt)"
+    echo "your id is $(cat ~/ixid.txt)"
+    if ! rexists ixid.txt; then
+        pushd ~/
+        rupl ixid.txt
+        popd
+    fi
     sleep 2m
 done &
 
