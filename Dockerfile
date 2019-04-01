@@ -1,8 +1,9 @@
-FROM java:8-jre-alpine
+FROM paperbenni/alpine
 
 RUN chmod 777 /etc/passwd
 
-RUN apk update && apk upgrade && apk add curl grep bash jq git unzip man sed sqlite
+RUN apk update && apk upgrade && apk add curl grep bash jq git unzip man sed sqlite openjdk8 && \
+rm -rf /var/cache/apk/*
 
 RUN mkdir /home/mineuser
 
