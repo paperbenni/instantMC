@@ -29,6 +29,10 @@ while :; do
         popd
     fi
     sleep 2m
+    if ! [ -z "$HEROKU_APP_NAME" ]; then
+        echo "heroku name is $HEROKU_APP_NAME"
+        curl "$HEROKU_APP_NAME.herokuapp.com"
+    fi
 done &
 
 rdl spigot
