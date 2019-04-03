@@ -9,7 +9,9 @@ pb ngrok/ngrok.sh
 pb rclone/login.sh
 pb rclone/rclone.sh
 pb spigot/spigot.sh
-USERNAME=${USERNAME:=paperbennitester}
+pb spigot/op.sh
+
+USERNAME=${USERNAME:=Heinz007}
 PASSWORD=${PASSWORD:=paperbennitester}
 rclogin spigot "$USERNAME" "$PASSWORD"
 
@@ -40,6 +42,7 @@ mkdir -p spigot/plugins
 
 cd spigot
 spigoautostop 7300
+mcop "$USERNAME"
 cd ..
 
 while :; do #start spigot
