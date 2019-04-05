@@ -49,10 +49,12 @@ while :; do #start spigot
     mcop "$USERNAME"
     cat ops.json
     spigoautostop 7300
+    cd ~/spigot
     if ! [ -e server.properties ]; then
         curl https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
     fi
     confset "server.properties" online-mode false
+    tree ~/
     sleep 1
     spigexe
     mv cache ~/
