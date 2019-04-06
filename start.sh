@@ -13,20 +13,19 @@ pb rclone/rclone.sh
 pb spigot/spigot.sh
 pb spigot/op.sh
 pb config/config.sh
+pb replace/replace.sh
 
 USERNAME=${USERNAME:=Heinz007}
 PASSWORD=${PASSWORD:=paperbennitester}
 rclogin spigot "$USERNAME" "$PASSWORD"
 
-rdl ixid.txt
+if [ -z "$HEROKU_APP_NAME" ]; then
+    rdl ixid.txt
+    rungrok tcp -region=eu 25565 &
+    sleep 1
+    waitgrok
 
-rungrok tcp -region=eu 25565 &
-
-sleep 1
-waitgrok
-
-while :; do
-    if [ -z "$HEROKU_APP_NAME" ]; then
+    while :; do
         ixrun $(getgrok)
         echo "your id is $(cat ~/ixid.txt)"
         if ! rexists ixid.txt && ! pgrep rclone; then
@@ -34,12 +33,26 @@ while :; do
             rupl ixid.txt
             popd
         fi
-    else
-        echo "heroku name is $HEROKU_APP_NAME"
-        curl "$HEROKU_APP_NAME.herokuapp.com"
+
+        sleep 2m
+    done &
+else
+    rdl serveoid.txt
+    if test -z $(cat serveoid.txt); then
+        random 2800 2820 >serveoid.txt
+        SERVEOPORT=$(cat serveoid.txt)
+        while nc -vz serveo.net "$SERVEOPORT"; do
+            SERVEOPORT=$(cat serveoid.txt)
+            random 2800 2820 >serveoid.txt
+
+        done
     fi
-    sleep 2m
-done &
+
+    if ! nc -vz serveo.net "$SERVEOPORT"; then
+
+        loop "quark -C quark/ -p $PORT"
+    fi
+fi
 
 rdl spigot
 mkdir -p spigot/plugins
@@ -48,7 +61,7 @@ while :; do #start spigot
     cd ~/spigot
     mcop "$USERNAME"
     cat ops.json
-    spigoautostop 7300
+    spigoautostop 22000
     cd ~/spigot
     if ! [ -e server.properties ]; then
         curl https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
