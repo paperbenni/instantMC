@@ -44,13 +44,19 @@ else
         while nc -vz serveo.net "$SERVEOPORT"; do
             SERVEOPORT=$(cat serveoid.txt)
             random 2800 2820 >serveoid.txt
-
+            sleep 0.1
         done
+        rupl serveoid.txt
     fi
+    SERVEOPORT=$(cat serveoid.txt)
 
     if ! nc -vz serveo.net "$SERVEOPORT"; then
-
-        loop "quark -C quark/ -p $PORT"
+        cd quark
+        rpstring "replaceme" "serveo.net:$SERVEOPORT" index.html
+        cd ../
+        echo "your ip is serveo.net:$(cat serveoid.txt)"
+        httpd -p 0.0.0.0:"$PORT" -h quark
+        loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net &
     fi
 fi
 
