@@ -55,9 +55,17 @@ else
         rpstring "replaceme" "serveo.net:$SERVEOPORT" index.html
         cd ../
         echo "your ip is serveo.net:$(cat serveoid.txt)"
-        httpd -p 0.0.0.0:"$PORT" -h quark
         loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net &
     fi
+    while :; do
+        echo "checking web server"
+        if ! curl "$HEROKU_APP_NAME.herokuapp.com" | grep 'Minecraft'; then
+            echo "web server not found, starting httpd"
+            httpd -p 0.0.0.0:"$PORT" -h quark
+            sleep 2
+        fi
+        sleep 5m
+    done &
 fi
 
 rdl spigot
