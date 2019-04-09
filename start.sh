@@ -15,11 +15,26 @@ pb spigot/op.sh
 pb config/config.sh
 pb replace/replace.sh
 
+#set up rclone storage
+
 USERNAME=${USERNAME:=Heinz007}
 PASSWORD=${PASSWORD:=paperbennitester}
+
+MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
+MEGAHASH=${MEGAHASH:=hXrGi5EjPZeu7c8YZB0gOyAYf97yVTC5TsI-HQ}
+
+cd .config/rclone
+rpstring "spigotuser" "$MEGAMAIL" rclone.conf
+rpstring "spigothash" "$MEGAHASH" rclone.conf
+cd
+
 rclogin spigot "$USERNAME" "$PASSWORD"
 
+# handle tcp tunneling and the web server
+
+# app is running on heroku?
 if [ -z "$HEROKU_APP_NAME" ]; then
+    # not heroku
     rdl ixid.txt
     rungrok tcp -region=eu 25565 &
     sleep 1
@@ -37,6 +52,7 @@ if [ -z "$HEROKU_APP_NAME" ]; then
         sleep 2m
     done &
 else
+    # heroku
     rdl serveoid.txt
     if test -z $(cat serveoid.txt); then
         random 2800 2820 >serveoid.txt
@@ -48,6 +64,7 @@ else
         done
         rupl serveoid.txt
     fi
+
     SERVEOPORT=$(cat serveoid.txt)
 
     if ! nc -vz serveo.net "$SERVEOPORT"; then
@@ -71,28 +88,39 @@ fi
 rdl spigot
 mkdir -p spigot/plugins
 
-while :; do #start spigot
+# start spigot
+while :; do
+
+    #op and AutoRestart
     cd ~/spigot
     mcop "$USERNAME"
     cat ops.json
-    spigoautostop 22000
+    spigotautorestart 1.5
     cd ~/spigot
     if ! [ -e server.properties ]; then
         curl https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
     fi
     confset "server.properties" online-mode false
     tree ~/
+
+    # execute spigot.jar
     sleep 1
     spigexe
+
+    # move cache to save cloud storage
     mv cache ~/
     mv spigot.jar ~/
+
     cd ~
+    # upload spigot folder
     rupl spigot
+
+    #move cache back in
     mv spigot.jar ./spigot/
     mv cache ./spigot/
     echo "restarting loop"
-    sleep 5
-
+    sleep 2
+    
 done
 
 echo 'quitting server :('
