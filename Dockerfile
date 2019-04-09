@@ -7,8 +7,8 @@ rm -rf /var/cache/apk/*
 
 COPY .netrc .netrc
 COPY rclone.conf .config/rclone/rclone.conf
+COPY restart.sh restart.sh
 COPY start.sh start.sh
-COPY restart restart.sh
 RUN  chmod -R 777 /home/user
 COPY quark quark
 

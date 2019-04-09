@@ -26,7 +26,7 @@ MEGAHASH=${MEGAHASH:=hXrGi5EjPZeu7c8YZB0gOyAYf97yVTC5TsI-HQ}
 cd .config/rclone
 rpstring "spigotuser" "$MEGAMAIL" rclone.conf
 rpstring "spigothash" "$MEGAHASH" rclone.conf
-cd
+cd ~/
 
 rclogin spigot "$USERNAME" "$PASSWORD"
 
@@ -54,6 +54,7 @@ if [ -z "$HEROKU_APP_NAME" ]; then
 else
     # heroku
     rdl serveoid.txt
+
     if test -z $(cat serveoid.txt); then
         random 2800 2820 >serveoid.txt
         SERVEOPORT=$(cat serveoid.txt)
@@ -66,22 +67,35 @@ else
     fi
 
     SERVEOPORT=$(cat serveoid.txt)
+    echo "checking serveo port"
+    while nc -vz serveo.net "$SERVEOPORT"; do
+        echo "temporarily changing to other serveo port"
+        SERVEOPORT=$(cat serveoid.txt)
+        random 2800 2820 >serveoid.txt
+        sleep 0.1
+    done
 
-    if ! nc -vz serveo.net "$SERVEOPORT"; then
-        cd quark
-        rpstring "replaceme" "serveo.net:$SERVEOPORT" index.html
-        cd ../
+    echo "serveo port is $SERVEOPORT"
+
+    cd ~/
+    while ! nc -vz serveo.net "$SERVEOPORT"; do
         echo "your ip is serveo.net:$(cat serveoid.txt)"
-        loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net &
-    fi
+        loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
+    done &
+
+    cd quark
+    rpstring "replaceme" "serveo.net:$SERVEOPORT" index.html
+    cd ~/
     while :; do
         echo "checking web server"
-        if ! curl "$HEROKU_APP_NAME.herokuapp.com" | grep 'Minecraft'; then
+        if ! pgrep httpd; then
             echo "web server not found, starting httpd"
             httpd -p 0.0.0.0:"$PORT" -h quark
             sleep 2
+        else
+            echo "web server found"
+            sleep 5m
         fi
-        sleep 5m
     done &
 fi
 
@@ -120,7 +134,7 @@ while :; do
     mv cache ./spigot/
     echo "restarting loop"
     sleep 2
-    
+
 done
 
 echo 'quitting server :('
