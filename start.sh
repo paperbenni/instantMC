@@ -3,17 +3,21 @@ cd
 #import functions
 source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import.sh)
 
-pb clear
-pb nocache
-pb bash/bash.sh
-pb ix/ix.sh
-pb ngrok/ngrok.sh
-pb rclone/login.sh
-pb rclone/rclone.sh
-pb spigot/spigot.sh
-pb spigot/op.sh
-pb config/config.sh
-pb replace/replace.sh
+pb bash
+pb config
+pb replace
+
+pb rclone
+pb rclone/login
+
+pb spigot
+pb spigot/op
+pb spigot/mpm
+
+pb ix
+pb ngrok
+
+pb titlesite
 
 #set up rclone storage
 
@@ -24,7 +28,7 @@ MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=hXrGi5EjPZeu7c8YZB0gOyAYf97yVTC5TsI-HQ}
 
 cd .config/rclone
-rpstring "spigotuser" "$MEGAMAIL" rclone.conf
+rpstring "spigotuser" "$MEGAMAIL" rclone.conf || exit 1
 rpstring "spigothash" "$MEGAHASH" rclone.conf
 cd ~/
 
@@ -83,9 +87,8 @@ else
         loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
     done &
 
-    cd quark
-    rpstring "replaceme" "serveo.net:$SERVEOPORT" index.html
-    cd ~/
+    titlesite glitch quark "join my minecraft server at" "serveo.net:$SERVEOPORT"
+
     while :; do
         echo "checking web server"
         if ! pgrep httpd; then
@@ -101,6 +104,13 @@ fi
 
 rdl spigot
 mkdir -p spigot/plugins
+
+spigotdl 1.13
+test -e spigot.jar || exit 1
+cd spigot
+cat mpmfile && mpm -f
+cd ..
+
 
 # start spigot
 while :; do
@@ -124,6 +134,9 @@ while :; do
     # move cache to save cloud storage
     mv cache ~/
     mv spigot.jar ~/
+    mkdir ~/plugins
+
+    mv plugins/*.jar ~/plugins/
 
     cd ~
     # upload spigot folder
@@ -132,6 +145,7 @@ while :; do
     #move cache back in
     mv spigot.jar ./spigot/
     mv cache ./spigot/
+    mv ~/plugins/*.jar ./plugins/
     echo "restarting loop"
     sleep 2
 
