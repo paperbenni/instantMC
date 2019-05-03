@@ -25,7 +25,7 @@ USERNAME=${USERNAME:=Heinz007}
 PASSWORD=${PASSWORD:=paperbennitester}
 
 MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
-MEGAHASH=${MEGAHASH:=hXrGi5EjPZeu7c8YZB0gOyAYf97yVTC5TsI-HQ}
+MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 
 cd .config/rclone
 rpstring "spigotuser" "$MEGAMAIL" rclone.conf || exit 1
@@ -38,6 +38,7 @@ rclogin spigot "$USERNAME" "$PASSWORD"
 
 # app is running on heroku?
 if [ -z "$HEROKU_APP_NAME" ]; then
+    echo "other host detected"
     # not heroku
     rdl ixid.txt
     rungrok tcp -region=eu 25565 &
@@ -57,6 +58,7 @@ if [ -z "$HEROKU_APP_NAME" ]; then
     done &
 else
     # heroku
+    echo "Heroku detected"
     rdl serveoid.txt
 
     if test -z $(cat serveoid.txt); then
@@ -91,6 +93,7 @@ else
 
     while :; do
         echo "checking web server"
+
         if ! pgrep httpd; then
             echo "web server not found, starting httpd"
             httpd -p 0.0.0.0:"$PORT" -h quark
@@ -99,18 +102,19 @@ else
             echo "web server found"
             sleep 5m
         fi
+        curl "$HEROKU_APP_NAME.herokuapp.com"
     done &
 fi
 
 rdl spigot
 mkdir -p spigot/plugins
 
+cd spigot
 spigotdl 1.13
 test -e spigot.jar || exit 1
-cd spigot
+rm plugins/*.mpm
 cat mpmfile && mpm -f
 cd ..
-
 
 # start spigot
 while :; do
@@ -119,7 +123,7 @@ while :; do
     cd ~/spigot
     mcop "$USERNAME"
     cat ops.json
-    spigotautorestart 1.5
+    mpm autorestart
     cd ~/spigot
     if ! [ -e server.properties ]; then
         curl https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
@@ -145,7 +149,7 @@ while :; do
     #move cache back in
     mv spigot.jar ./spigot/
     mv cache ./spigot/
-    mv ~/plugins/*.jar ./plugins/
+    mv ~/plugins/*.jar ./spigot/plugins/
     echo "restarting loop"
     sleep 2
 
