@@ -108,7 +108,7 @@ fi
 
 rdl spigot
 mkdir -p spigot/plugins
-
+rm -rf spigot/logs
 cd spigot
 spigotdl 1.13
 test -e spigot.jar || exit 1
@@ -141,7 +141,7 @@ while :; do
     mkdir ~/plugins
 
     mv plugins/*.jar ~/plugins/
-
+    rm -rf logs
     cd ~
     # upload spigot folder
     rupl spigot
