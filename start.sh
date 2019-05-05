@@ -28,8 +28,15 @@ MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 
 cd .config/rclone
-rpstring "spigotuser" "$MEGAMAIL" rclone.conf || exit 1
-rpstring "spigothash" "$MEGAHASH" rclone.conf
+if [ -z "$DROPTOKEN" ]; then
+    rpstring "spigotuser" "$MEGAMAIL" rclone.conf || exit 1
+    rpstring "spigothash" "$MEGAHASH" rclone.conf
+else
+    rm rclone.conf
+    touch rclone.conf
+    pb rclone/dropbox
+    addbox "spigot" "$DROPTOKEN"
+fi
 cd ~/
 
 rclogin spigot "$USERNAME" "$PASSWORD"
