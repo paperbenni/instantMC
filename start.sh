@@ -143,8 +143,16 @@ while :; do
     mv plugins/*.jar ~/plugins/
     rm -rf logs
     cd ~
+
     # upload spigot folder
+    touch uploading
+    while [ -e uploading ]; do
+        echo "uploading spigot folder"
+        sleep 120
+    done &
+
     rupl spigot
+    rm uploading
 
     #move cache back in
     mv spigot.jar ./spigot/
