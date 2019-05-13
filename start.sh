@@ -23,15 +23,17 @@ pb titlesite
 
 USERNAME=${USERNAME:=Heinz007}
 PASSWORD=${PASSWORD:=paperbennitester}
-
+HSPIGOT=${MINECRAFTVERSION:=1.13}
 MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 
 cd .config/rclone
 if [ -z "$DROPTOKEN" ]; then
+    echo "using mega storage"
     rpstring "spigotuser" "$MEGAMAIL" rclone.conf || exit 1
     rpstring "spigothash" "$MEGAHASH" rclone.conf
 else
+    echo "using dropbox storage"
     rm rclone.conf
     touch rclone.conf
     pb rclone/dropbox
@@ -130,44 +132,41 @@ while :; do
     cd ~/spigot
     mcop "$USERNAME"
     cat ops.json
-    mpm autorestart
     cd ~/spigot
     if ! [ -e server.properties ]; then
         curl https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
     fi
     confset "server.properties" online-mode false
     tree ~/
-
     # execute spigot.jar
     sleep 1
-    spigexe
-
+    spigexe "$HSPIGOT"
+    echo "spigot exited"
     # move cache to save cloud storage
-    mv cache ~/
-    mv spigot.jar ~/
-    mkdir ~/plugins
+done &
 
-    mv plugins/*.jar ~/plugins/
-    rm -rf logs
-    cd ~
+sleep 10
 
+echo "backup loop starting"
+
+while :; do
+    sleep 30m
     # upload spigot folder
-    touch uploading
-    while [ -e uploading ]; do
-        echo "uploading spigot folder"
-        sleep 120
-    done &
-
+    echo "starting backup process"
+    rm -rf ~/spigot/logs
+    cd ~
+    mkdir uploader
+    cp -r spigot uploader/spigot
+    cd uploader/spigot
+    rm plugins/*.jar
+    rm spigot.jar
+    rm -rf cache
+    cd ..
     rupl spigot
-    rm uploading
-
-    #move cache back in
-    mv spigot.jar ./spigot/
-    mv cache ./spigot/
-    mv ~/plugins/*.jar ./spigot/plugins/
-    echo "restarting loop"
+    rm -rf spigot
+    cd ~/
+    echo "restarting backup loop"
     sleep 2
-
 done
 
 echo 'quitting server :('
