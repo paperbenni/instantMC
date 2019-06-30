@@ -82,8 +82,8 @@ else
     fi
 
     SERVEOPORT=$(cat serveoid.txt)
-    echo "checking serveo port"
-    while nc -vz serveo.net "$SERVEOPORT"; do
+    echo "checking serveo port $SERVEOPORT"
+    while timeout 10 nc -vz serveo.net "$SERVEOPORT"; do
         echo "temporarily changing to other serveo port"
         SERVEOPORT=$(cat serveoid.txt)
         random 2800 2820 >serveoid.txt
@@ -94,7 +94,7 @@ else
 
     cd ~/
     while ! nc -vz serveo.net "$SERVEOPORT"; do
-        echo "your ip is serveo.net:$(cat serveoid.txt)"
+        echo "your ip is serveo.net:$SERVEOPORT"
         loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
     done &
 
