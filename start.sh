@@ -123,12 +123,23 @@ spigotdl 1.13
 test -e spigot.jar || exit 1
 rm plugins/*.mpm
 cat mpmfile && mpm -f
+
+if [ -n "$MCPLUGINS" ]; then
+    echo "installing mpm plugins from list"
+    IFS2="$IFS"
+    export IFS=","
+    for word in $MCPLUGINS; do
+        mpm "$word"
+    done
+    export IFS="$IFS2"
+fi
+
 cd ..
 
 # start spigot
 while :; do
 
-    #op and AutoRestart
+    #default op user
     cd ~/spigot
     mcop "$USERNAME"
     cat ops.json
