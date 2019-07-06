@@ -29,9 +29,7 @@ MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 
 cd .config/rclone
 if [ -z "$DROPTOKEN" ]; then
-    echo "using mega storage"
-    rpstring "spigotuser" "$MEGAMAIL" rclone.conf || exit 1
-    rpstring "spigothash" "$MEGAHASH" rclone.conf
+    rcloud mineglory
 else
     echo "using dropbox storage"
     rm rclone.conf
@@ -41,7 +39,7 @@ else
 fi
 cd ~/
 
-rclogin spigot "$USERNAME" "$PASSWORD"
+rclogin mineglory "$USERNAME" "$PASSWORD"
 
 # handle tcp tunneling and the web server
 
@@ -68,38 +66,50 @@ if [ -z "$HEROKU_APP_NAME" ]; then
 else
     # heroku
     echo "Heroku detected"
-    rdl serveoid.txt
 
-    if test -z $(cat serveoid.txt); then
-        random 2800 2820 >serveoid.txt
+    #check if serveo is offline, ngrok for backup
+    if timeout 15 curl serveo.net; then
+        rdl serveoid.txt
+        # generate serveo port
+        if test -z $(cat serveoid.txt); then
+            random 2800 2820 >serveoid.txt
+            SERVEOPORT=$(cat serveoid.txt)
+            #check if someone is using that port
+            while nc -vz serveo.net "$SERVEOPORT"; do
+                SERVEOPORT=$(cat serveoid.txt)
+                random 2800 2820 >serveoid.txt
+                sleep 0.1
+            done
+            rupl serveoid.txt
+        fi
+
         SERVEOPORT=$(cat serveoid.txt)
-        while nc -vz serveo.net "$SERVEOPORT"; do
+        echo "checking serveo port $SERVEOPORT"
+        #check serveo port availability
+        while timeout 10 nc -vz serveo.net "$SERVEOPORT"; do
+            echo "temporarily changing to other serveo port"
             SERVEOPORT=$(cat serveoid.txt)
             random 2800 2820 >serveoid.txt
             sleep 0.1
         done
-        rupl serveoid.txt
+        echo "serveo port is $SERVEOPORT"
+        cd ~/
+
+        #check if tunnel is still going
+        while ! nc -vz serveo.net "$SERVEOPORT"; do
+            echo "your ip is serveo.net:$SERVEOPORT"
+            loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
+        done &
+        titlesite glitch quark "join my minecraft server at" "serveo.net:$SERVEOPORT"
+    else
+        echo "serveo is currently down, switching to ngrok"
+        rungrok tcp -region=eu 25565 &
+        sleep 1
+        waitgrok
+        titlesite glitch quark "join my minecraft server at" "ngrok:$(getgrok)"
     fi
 
-    SERVEOPORT=$(cat serveoid.txt)
-    echo "checking serveo port $SERVEOPORT"
-    while timeout 10 nc -vz serveo.net "$SERVEOPORT"; do
-        echo "temporarily changing to other serveo port"
-        SERVEOPORT=$(cat serveoid.txt)
-        random 2800 2820 >serveoid.txt
-        sleep 0.1
-    done
-
-    echo "serveo port is $SERVEOPORT"
-
-    cd ~/
-    while ! nc -vz serveo.net "$SERVEOPORT"; do
-        echo "your ip is serveo.net:$SERVEOPORT"
-        loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
-    done &
-
-    titlesite glitch quark "join my minecraft server at" "serveo.net:$SERVEOPORT"
-
+    #start web server for status and heroku kill
     while :; do
         echo "checking web server"
 
@@ -111,19 +121,22 @@ else
             echo "web server found"
             sleep 5m
         fi
-        curl "$HEROKU_APP_NAME.herokuapp.com"
+        curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep 'minecraft'
     done &
+
 fi
 
+#download world data from dropbox
 rdl spigot
 mkdir -p spigot/plugins
 rm -rf spigot/logs
 cd spigot
 spigotdl 1.13
 test -e spigot.jar || exit 1
+
+# install plugin
 rm plugins/*.mpm
 cat mpmfile && mpm -f
-
 if [ -n "$MCPLUGINS" ]; then
     echo "installing mpm plugins from list"
     IFS2="$IFS"
@@ -160,9 +173,9 @@ sleep 10
 
 echo "backup loop starting"
 
+# upload spigot folder every 30 min
 while :; do
     sleep 30m
-    # upload spigot folder
     echo "starting backup process"
     rm -rf ~/spigot/logs
     cd ~
@@ -180,5 +193,5 @@ while :; do
     sleep 2
 done
 
-echo 'quitting server :('
+echo 'how did you reach the end of the script?'
 #end of script
