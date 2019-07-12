@@ -1,5 +1,10 @@
 #!/bin/bash
+export HOME=/home/user
+HOME=/home/user
+(timeout 15 curl serveo.net || timeout -t 15 curl serveo.net) && SERVEOUP="yeeeees"
 cd
+echo "home dir: $HOME"
+echo "current dir: $(pwd)"
 #import functions
 source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import.sh)
 
@@ -68,7 +73,7 @@ else
     echo "Heroku detected"
 
     #check if serveo is offline, ngrok for backup
-    if timeout 15 curl serveo.net; then
+    if [ -z SERVEOUP ]; then
         rdl serveoid.txt
         # generate serveo port
         if test -z $(cat serveoid.txt); then
@@ -101,28 +106,27 @@ else
             loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
         done &
         titlesite glitch quark "join my minecraft server at" "serveo.net:$SERVEOPORT"
+        #start web server for status and heroku kill
+        while :; do
+            echo "checking web server"
+
+            if ! pgrep httpd; then
+                echo "web server not found, starting httpd"
+                httpd -p 0.0.0.0:"$PORT" -h quark
+                sleep 2
+            else
+                echo "web server found"
+                sleep 5m
+            fi
+            curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep 'minecraft'
+        done &
     else
         echo "serveo is currently down, switching to ngrok"
         rungrok tcp -region=eu 25565 &
         sleep 1
-        waitgrok
-        titlesite glitch quark "join my minecraft server at" "ngrok:$(getgrok)"
     fi
 
-    #start web server for status and heroku kill
-    while :; do
-        echo "checking web server"
 
-        if ! pgrep httpd; then
-            echo "web server not found, starting httpd"
-            httpd -p 0.0.0.0:"$PORT" -h quark
-            sleep 2
-        else
-            echo "web server found"
-            sleep 5m
-        fi
-        curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep 'minecraft'
-    done &
 
 fi
 
