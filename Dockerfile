@@ -6,8 +6,6 @@ RUN apk update && apk upgrade && apk add curl grep bash jq git unzip man sed sql
 rm -rf /var/cache/apk/*
 RUN curl https://rclone.org/install.sh | bash
 COPY .netrc .netrc
-COPY rclone.conf .config/rclone/rclone.conf
-COPY restart.sh restart.sh
 COPY start.sh start.sh
 RUN  chmod -R 777 /home/user
 

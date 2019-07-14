@@ -1,7 +1,12 @@
 #!/bin/bash
 export HOME=/home/user
 HOME=/home/user
-(timeout 15 curl serveo.net || timeout -t 15 curl serveo.net) && SERVEOUP="yeeeees"
+
+if curl serveo.net | grep 'expose'; then
+    echo "serveo is up"
+    SERVEOUP="yes"
+fi
+
 cd
 echo "home dir: $HOME"
 echo "current dir: $(pwd)"
@@ -40,7 +45,8 @@ else
     rm rclone.conf
     touch rclone.conf
     pb rclone/dropbox
-    addbox "spigot" "$DROPTOKEN"
+    addbox "mineglory" "$DROPTOKEN"
+    HCLOUDNAME="default mega"
 fi
 cd ~/
 
@@ -73,7 +79,7 @@ else
     echo "Heroku detected"
 
     #check if serveo is offline, ngrok for backup
-    if [ -z SERVEOUP ]; then
+    if [ -n SERVEOUP ]; then
         rdl serveoid.txt
         # generate serveo port
         if test -z $(cat serveoid.txt); then
@@ -105,7 +111,8 @@ else
             echo "your ip is serveo.net:$SERVEOPORT"
             loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
         done &
-        titlesite glitch quark "join my minecraft server at" "serveo.net:$SERVEOPORT"
+
+        titlesite glitch quark "$HCLOUDNAME join my minecraft server at" "serveo.net:$SERVEOPORT"
         #start web server for status and heroku kill
         while :; do
             echo "checking web server"
@@ -125,8 +132,6 @@ else
         rungrok tcp -region=eu 25565 &
         sleep 1
     fi
-
-
 
 fi
 
