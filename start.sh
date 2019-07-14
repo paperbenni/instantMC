@@ -45,7 +45,8 @@ else
     rm rclone.conf
     touch rclone.conf
     pb rclone/dropbox
-    addbox "spigot" "$DROPTOKEN"
+    addbox "mineglory" "$DROPTOKEN"
+    HCLOUDNAME="default mega"
 fi
 cd ~/
 
@@ -110,7 +111,8 @@ else
             echo "your ip is serveo.net:$SERVEOPORT"
             loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
         done &
-        titlesite glitch quark "join my minecraft server at" "serveo.net:$SERVEOPORT"
+
+        titlesite glitch quark "$HCLOUDNAME join my minecraft server at" "serveo.net:$SERVEOPORT"
         #start web server for status and heroku kill
         while :; do
             echo "checking web server"
