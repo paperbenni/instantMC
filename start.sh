@@ -33,24 +33,31 @@ pb titlesite
 
 USERNAME=${USERNAME:=Heinz007}
 PASSWORD=${PASSWORD:=paperbennitester}
-HSPIGOT=${MINECRAFTVERSION:=1.13}
 MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
+echo "using minecraft version $MINECRAFTVERSION"
 
+cd
+mkdir -p .config/rclone
 cd .config/rclone
+
 if [ -z "$DROPTOKEN" ]; then
     rcloud mineglory
+    HCLOUDNAME="default mega"
 else
     echo "using dropbox storage"
     rm rclone.conf
     touch rclone.conf
     pb rclone/dropbox
-    addbox "mineglory" "$DROPTOKEN"
-    HCLOUDNAME="default mega"
+    addbox "$DROPTOKEN" "mineglory"
+    HCLOUDNAME="dropbox"
 fi
-cd ~/
+
+cd
+cat .config/rclone/rclone.conf
 
 rclogin mineglory "$USERNAME" "$PASSWORD"
+cat ~/.config/rclone/rclone.conf
 
 # handle tcp tunneling and the web server
 
@@ -97,7 +104,7 @@ else
         SERVEOPORT=$(cat serveoid.txt)
         echo "checking serveo port $SERVEOPORT"
         #check serveo port availability
-        while timeout 10 nc -vz serveo.net "$SERVEOPORT"; do
+        while timeout -t 10 nc -vz serveo.net "$SERVEOPORT"; do
             echo "temporarily changing to other serveo port"
             SERVEOPORT=$(cat serveoid.txt)
             random 2800 2820 >serveoid.txt
@@ -125,7 +132,7 @@ else
                 echo "web server found"
                 sleep 5m
             fi
-            curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep 'minecraft'
+            curl -s "$HEROKU_APP_NAME.herokuapp.com" | egrep -o 'minecraft'
         done &
     else
         echo "serveo is currently down, switching to ngrok"
@@ -140,11 +147,10 @@ rdl spigot
 mkdir -p spigot/plugins
 rm -rf spigot/logs
 cd spigot
-spigotdl 1.13
-test -e spigot.jar || exit 1
 
 # install plugin
 rm plugins/*.mpm
+rm plugins/*.jar
 cat mpmfile && mpm -f
 if [ -n "$MCPLUGINS" ]; then
     echo "installing mpm plugins from list"
@@ -167,13 +173,12 @@ while :; do
     cat ops.json
     cd ~/spigot
     if ! [ -e server.properties ]; then
-        curl https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
+        curl -s https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
     fi
     confset "server.properties" online-mode false
-    tree ~/
     # execute spigot.jar
     sleep 1
-    spigexe "$HSPIGOT"
+    spigexe "$MINECRAFTVERSION"
     echo "spigot exited"
     # move cache to save cloud storage
 done &
@@ -191,6 +196,7 @@ while :; do
     mkdir uploader
     cp -r spigot uploader/spigot
     cd uploader/spigot
+    rm plugins/*.mpm
     rm plugins/*.jar
     rm spigot.jar
     rm -rf cache
