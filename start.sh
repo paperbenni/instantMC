@@ -16,6 +16,7 @@ source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import
 pb bash
 pb config
 pb replace
+pb heroku
 
 pb rclone
 pb rclone/login
@@ -30,11 +31,23 @@ pb ngrok
 pb titlesite
 
 #set up rclone storage
+if [ -n "$IAMPAPERBENNI" ]; then
+    USERNAME=${USERNAME:=Heinz007}
+    PASSWORD=${PASSWORD:=paperbennitester}
+else
+    for i in "$USERNAME" "$PASSWORD"; do
+        if [ -z "$i" ]; then
+            while :; do
+                echo "please set the following variables"
+                echo "USERNAME"
+                echo "PASSWORD"
+                sleep 30
+            done
+            exit
+        fi
+    done
+fi
 
-USERNAME=${USERNAME:=Heinz007}
-PASSWORD=${PASSWORD:=paperbennitester}
-MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
-MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 echo "using minecraft version $MINECRAFTVERSION"
 
 cd
@@ -60,9 +73,21 @@ rclogin mineglory "$USERNAME" "$PASSWORD"
 cat ~/.config/rclone/rclone.conf
 
 # handle tcp tunneling and the web server
+# weiter
+if ! rexists spigot; then
+
+    spigotdefault
+    titlesite glitch quark "CONFIG REQUIRED" "edit the template files and then restart the server" &
+
+    while :; do
+
+        echo "edit the template files and then restart the server"
+        sleep 10
+    done
+fi
 
 # app is running on heroku?
-if [ -z "$HEROKU_APP_NAME" ]; then
+if isheroku; then
     echo "other host detected"
     # not heroku
     rdl ixid.txt
@@ -86,7 +111,7 @@ else
     echo "Heroku detected"
 
     #check if serveo is offline, ngrok for backup
-    if [ -n SERVEOUP ]; then
+    if [ -n "$SERVEOUP" ]; then
         rdl serveoid.txt
         # generate serveo port
         if test -z $(cat serveoid.txt); then
@@ -132,7 +157,7 @@ else
                 echo "web server found"
                 sleep 5m
             fi
-            curl -s "$HEROKU_APP_NAME.herokuapp.com" | egrep -o 'minecraft'
+            curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep -o 'minecraft'
         done &
     else
         echo "serveo is currently down, switching to ngrok"
