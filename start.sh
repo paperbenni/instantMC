@@ -9,7 +9,6 @@ fi
 
 cd
 echo "home dir: $HOME"
-echo "current dir: $(pwd)"
 #import functions
 source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import.sh)
 
@@ -19,16 +18,18 @@ pb replace
 pb heroku
 
 pb rclone
-pb rclone/login
+pb rclone.login
 
 pb spigot
-pb spigot/op
-pb spigot/mpm
+pb spigot.op
+pb spigot.mpm
 
 pb ix
 pb ngrok
 
 pb titlesite
+
+echo "using minecraft version $MINECRAFTVERSION"
 
 #set up rclone storage
 if [ -n "$IAMPAPERBENNI" ]; then
@@ -37,6 +38,7 @@ if [ -n "$IAMPAPERBENNI" ]; then
 else
     for i in "$USERNAME" "$PASSWORD"; do
         if [ -z "$i" ]; then
+            titlesite glitch quark "CONFIG REQUIRED" "set the variables USERNAME and PASSWORD" &
             while :; do
                 echo "please set the following variables"
                 echo "USERNAME"
@@ -58,7 +60,7 @@ if [ -z "$DROPTOKEN" ]; then
     rcloud mineglory
     HCLOUDNAME="default mega"
 else
-    echo "using dropbox storage"
+    echo "using personal dropbox storage"
     rm rclone.conf
     touch rclone.conf
     pb rclone/dropbox
@@ -66,11 +68,7 @@ else
     HCLOUDNAME="dropbox"
 fi
 
-cd
-cat .config/rclone/rclone.conf
-
 rclogin mineglory "$USERNAME" "$PASSWORD"
-cat ~/.config/rclone/rclone.conf
 
 # handle tcp tunneling and the web server
 # weiter
@@ -80,10 +78,10 @@ if ! rexists spigot; then
     titlesite glitch quark "CONFIG REQUIRED" "edit the template files and then restart the server" &
 
     while :; do
-
-        echo "edit the template files and then restart the server"
+        echo "edit the template files (or keep the defalt ones) and then restart the server"
         sleep 10
     done
+    exit
 fi
 
 # app is running on heroku?
@@ -114,7 +112,7 @@ else
     if [ -n "$SERVEOUP" ]; then
         rdl serveoid.txt
         # generate serveo port
-        if test -z $(cat serveoid.txt); then
+        if [ -z $(cat serveoid.txt) ]; then
             random 2800 2820 >serveoid.txt
             SERVEOPORT=$(cat serveoid.txt)
             #check if someone is using that port
