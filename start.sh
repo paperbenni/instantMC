@@ -2,7 +2,8 @@
 export HOME=/home/user
 HOME=/home/user
 
-if curl serveo.net | grep 'expose'; then
+if (curl serveo.net | grep 'expose') && \
+tout 5 nc -z serveo.net 22; then
     echo "serveo is up"
     SERVEOUP="yes"
 fi
@@ -127,7 +128,7 @@ else
         SERVEOPORT=$(cat serveoid.txt)
         echo "checking serveo port $SERVEOPORT"
         #check serveo port availability
-        while timeout -t 10 nc -vz serveo.net "$SERVEOPORT"; do
+        while tout 10 nc -vz serveo.net "$SERVEOPORT"; do
             echo "temporarily changing to other serveo port"
             SERVEOPORT=$(cat serveoid.txt)
             random 2800 2820 >serveoid.txt
