@@ -2,8 +2,8 @@
 export HOME=/home/user
 HOME=/home/user
 
-if (curl serveo.net | grep 'expose') && \
-tout 5 nc -z serveo.net 22; then
+if (curl serveo.net | grep 'expose') &&
+    tout 5 nc -z serveo.net 22; then
     echo "serveo is up"
     SERVEOUP="yes"
 fi
@@ -86,7 +86,7 @@ if ! rexists spigot; then
 fi
 
 # app is running on heroku?
-if isheroku; then
+if ! isheroku; then
     echo "other host detected"
     # not heroku
     rdl ixid.txt
@@ -147,21 +147,22 @@ else
         #start web server for status and heroku kill
         while :; do
             echo "checking web server"
-
-            if ! pgrep httpd; then
-                echo "web server not found, starting httpd"
-                httpd -p 0.0.0.0:"$PORT" -h quark
-                sleep 2
-            else
-                echo "web server found"
-                sleep 5m
-            fi
+            pgrep httpd || httpd -p 0.0.0.0:"$PORT" -h quark
+            sleep 5m
             curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep -o 'minecraft'
         done &
     else
         echo "serveo is currently down, switching to ngrok"
         rungrok tcp -region=eu 25565 &
-        sleep 1
+        waitgrok
+        titlesite glitch quark "$HCLOUDNAME join my minecraft server at" "$(getgrok)"
+        #start web server for status and heroku kill
+        while :; do
+            echo "checking web server"
+            pgrep httpd || httpd -p 0.0.0.0:"$PORT" -h quark
+            sleep 5m
+            curl -s "$HEROKU_APP_NAME.herokuapp.com" | grep -o 'minecraft'
+        done &
     fi
 
 fi
