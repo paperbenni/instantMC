@@ -53,7 +53,7 @@ cat ~/.config/rclone/rclone.conf
 
 # handle tcp tunneling and the web server
 mkdir ~/.ssh
-ssh-keyscan -H -p 2222 paperbenni.mooo.com >> ~/.ssh/known_hosts
+ssh-keyscan -H -p 2222 paperbenni.mooo.com >>~/.ssh/known_hosts
 mpm tunnel "$SERVPORT" &
 #download world data from dropbox
 cd $HOME
@@ -68,7 +68,7 @@ rm plugins/*.mpm
 rm plugins/*.jar
 mpm install
 
-[ -n "$MCPLUGINS" ] && mpm "$MCPLUGINS"
+[ -n "$MCPLUGINS" ] && mpm plugin "$MCPLUGINS"
 
 cd ..
 
@@ -77,7 +77,7 @@ while :; do
 
     #default op user
     cd ~/spigot
-    mpm op "$MCNAME"
+    mpm op "${MCNAME:-Heinz007}"
     cat ops.json
     cd ~/spigot
 
@@ -94,6 +94,7 @@ sleep 10
 echo "backup loop starting"
 
 # upload spigot folder every 30 min
+# copy it so it doesnt upload the copy that gets written to
 while :; do
     sleep 30m
     echo "starting backup process"
