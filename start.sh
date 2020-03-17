@@ -2,39 +2,31 @@
 export HOME=/home/user
 HOME=/home/user
 
-if curl serveo.net | grep 'expose'; then
-    echo "serveo is up"
-    SERVEOUP="yes"
-fi
-
 cd
 echo "home dir: $HOME"
 echo "current dir: $(pwd)"
 #import functions
-source <(curl -s https://raw.githubusercontent.com/paperbenni/bash/master/import.sh)
+source <(curl -Ls https://git.io/JerLG)
 
-pb bash
 pb config
 pb replace
 
 pb rclone
 pb rclone/login
 
-pb spigot
-pb spigot/op
-pb spigot/mpm
-
 pb ix
 pb ngrok
 
-pb titlesite
-
 #set up rclone storage
+if [ -z "$USERNAME" ] || [ -z "$PASSWORD" ]; then
+    echo "please set the environment variables"
+    echo "USERNAME and PASSWORD"
+    exit
+fi
 
-USERNAME=${USERNAME:=Heinz007}
-PASSWORD=${PASSWORD:=paperbennitester}
 MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
+SERVPORT=${SPORT:-0}
 echo "using minecraft version $MINECRAFTVERSION"
 
 cd
@@ -60,90 +52,13 @@ rclogin mineglory "$USERNAME" "$PASSWORD"
 cat ~/.config/rclone/rclone.conf
 
 # handle tcp tunneling and the web server
-
-# app is running on heroku?
-if [ -z "$HEROKU_APP_NAME" ]; then
-    echo "other host detected"
-    # not heroku
-    rdl ixid.txt
-    rungrok tcp -region=eu 25565 &
-    sleep 1
-    waitgrok
-
-    while :; do
-        ixrun $(getgrok)
-        echo "your id is $(cat ~/ixid.txt)"
-        if ! rexists ixid.txt && ! pgrep rclone; then
-            pushd ~/
-            rupl ixid.txt
-            popd
-        fi
-
-        sleep 2m
-    done &
-else
-    # heroku
-    echo "Heroku detected"
-
-    #check if serveo is offline, ngrok for backup
-    if [ -n SERVEOUP ]; then
-        rdl serveoid.txt
-        # generate serveo port
-        if test -z $(cat serveoid.txt); then
-            random 2800 2820 >serveoid.txt
-            SERVEOPORT=$(cat serveoid.txt)
-            #check if someone is using that port
-            while nc -vz serveo.net "$SERVEOPORT"; do
-                SERVEOPORT=$(cat serveoid.txt)
-                random 2800 2820 >serveoid.txt
-                sleep 0.1
-            done
-            rupl serveoid.txt
-        fi
-
-        SERVEOPORT=$(cat serveoid.txt)
-        echo "checking serveo port $SERVEOPORT"
-        #check serveo port availability
-        while timeout -t 10 nc -vz serveo.net "$SERVEOPORT"; do
-            echo "temporarily changing to other serveo port"
-            SERVEOPORT=$(cat serveoid.txt)
-            random 2800 2820 >serveoid.txt
-            sleep 0.1
-        done
-        echo "serveo port is $SERVEOPORT"
-        cd ~/
-
-        #check if tunnel is still going
-        while ! nc -vz serveo.net "$SERVEOPORT"; do
-            echo "your ip is serveo.net:$SERVEOPORT"
-            loop nohup autossh -oStrictHostKeyChecking=no -M 0 -R $SERVEOPORT:localhost:25565 serveo.net
-        done &
-
-        titlesite glitch quark "$HCLOUDNAME join my minecraft server at" "serveo.net:$SERVEOPORT"
-        #start web server for status and heroku kill
-        while :; do
-            echo "checking web server"
-
-            if ! pgrep httpd; then
-                echo "web server not found, starting httpd"
-                httpd -p 0.0.0.0:"$PORT" -h quark
-                sleep 2
-            else
-                echo "web server found"
-                sleep 5m
-            fi
-            curl -s "$HEROKU_APP_NAME.herokuapp.com" | egrep -o 'minecraft'
-        done &
-    else
-        echo "serveo is currently down, switching to ngrok"
-        rungrok tcp -region=eu 25565 &
-        sleep 1
-    fi
-
-fi
-
+mkdir ~/.ssh
+ssh-keyscan -H -p 2222 paperbenni.mooo.com >> ~/.ssh/known_hosts
+mpm tunnel "$SERVPORT" &
 #download world data from dropbox
+cd $HOME
 rdl spigot
+cd $HOME
 mkdir -p spigot/plugins
 rm -rf spigot/logs
 cd spigot
@@ -151,16 +66,9 @@ cd spigot
 # install plugin
 rm plugins/*.mpm
 rm plugins/*.jar
-cat mpmfile && mpm -f
-if [ -n "$MCPLUGINS" ]; then
-    echo "installing mpm plugins from list"
-    IFS2="$IFS"
-    export IFS=","
-    for word in $MCPLUGINS; do
-        mpm "$word"
-    done
-    export IFS="$IFS2"
-fi
+mpm install
+
+[ -n "$MCPLUGINS" ] && mpm "$MCPLUGINS"
 
 cd ..
 
@@ -169,16 +77,14 @@ while :; do
 
     #default op user
     cd ~/spigot
-    mcop "$USERNAME"
+    mpm op "$MCNAME"
     cat ops.json
     cd ~/spigot
-    if ! [ -e server.properties ]; then
-        curl -s https://raw.githubusercontent.com/paperbenni/openshiftspigot/master/server.properties >server.properties
-    fi
-    confset "server.properties" online-mode false
+
     # execute spigot.jar
     sleep 1
-    spigexe "$MINECRAFTVERSION"
+    mpm spigot "$MCVERSION"
+    mpm start "$MCMEMORY"
     echo "spigot exited"
     # move cache to save cloud storage
 done &

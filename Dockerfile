@@ -1,11 +1,10 @@
 FROM paperbenni/alpine
 
-RUN chmod 777 /etc/passwd
-
-RUN apk update && apk upgrade && apk add curl grep bash jq git unzip man sed sqlite openjdk8 tree subversion && \
+RUN apk update && apk upgrade && apk add curl grep bash jq git unzip man sed sqlite openjdk8 tree && \
 rm -rf /var/cache/apk/*
 RUN curl https://rclone.org/install.sh | bash
-COPY .netrc .netrc
+RUN curl https://raw.githubusercontent.com/paperbenni/mpm/master/mpm.sh > /usr/bin/mpm && \
+chmod 755 /usr/bin/mpm
 COPY start.sh start.sh
 RUN  chmod -R 777 /home/user
 
