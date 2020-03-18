@@ -54,7 +54,12 @@ cat ~/.config/rclone/rclone.conf
 # handle tcp tunneling and the web server
 mkdir ~/.ssh
 ssh-keyscan -H -p 2222 paperbenni.mooo.com >>~/.ssh/known_hosts
-mpm tunnel "$SERVPORT" &
+
+while :; do
+    mpm tunnel "$SERVPORT"
+    sleep 2
+done &
+
 #download world data from dropbox
 cd $HOME
 rdl spigot
