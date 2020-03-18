@@ -89,6 +89,12 @@ while :; do
     # execute spigot.jar
     sleep 1
     mpm spigot "$MCVERSION"
+
+    # custom motd
+    if [ -e server.properties ] && [ -n "$MCMOTD" ]; then
+        sed -i 's/motd=.*/motd='"$MCMOTD"'/g' server.properties
+    fi
+    
     mpm start "$MCMEMORY"
     echo "spigot exited"
     # move cache to save cloud storage
