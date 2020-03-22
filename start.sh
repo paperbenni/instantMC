@@ -94,7 +94,7 @@ while :; do
     if [ -e server.properties ] && [ -n "$MCMOTD" ]; then
         sed -i 's/motd=.*/motd='"$MCMOTD"'/g' server.properties
     fi
-    
+
     mpm start "$MCMEMORY"
     echo "spigot exited"
     # move cache to save cloud storage
@@ -107,7 +107,13 @@ echo "backup loop starting"
 # upload spigot folder every 30 min
 # copy it so it doesnt upload the copy that gets written to
 while :; do
-    sleep 30m
+
+    sleep ${BACKUPTIME:-30}m
+    if pgrep rclone; then
+        echo "rclone still running"
+        continue
+    fi
+
     echo "starting backup process"
     rm -rf ~/spigot/logs
     cd ~
