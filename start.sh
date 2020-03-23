@@ -27,6 +27,7 @@ fi
 MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 SERVPORT=${SPORT:-0}
+
 echo "using minecraft version $MINECRAFTVERSION"
 
 cd

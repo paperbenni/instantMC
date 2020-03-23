@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export TERM=xterm
+
+if ! pgrep screen; then
+    screen -S spigot -d -m instantmc
+else
+    screen -r spigot
+fi
