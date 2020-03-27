@@ -22,3 +22,8 @@ DROPTOKEN # Set this to an auth token for your dropbox to sync with it
 MEGAMAIL
 MEGAHASH
 ```
+
+# local install
+```
+curl -s 'https://raw.githubusercontent.com/paperbenni/instantMC/master/local/install.sh' | sh
+```
