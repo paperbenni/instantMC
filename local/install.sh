@@ -19,6 +19,8 @@ mkdir -p /home/user
 curl -s "$RAW/Dockerfile" | grep -E '(^RUN|^[^A-Z])' | sed 's/RUN//g' | bash
 curl -s "$RAW/start.sh" >/usr/bin/instantmc
 curl -s "$RAW/local/startmc" >/usr/bin/spigot
-curl -s "$RAW/local/attachmc" >/usr/bin/spigot
+curl -s "$RAW/local/attachmc" >/usr/bin/attachspigot
 
 chmod 755 /usr/bin/instantmc
+chmod 755 /usr/bin/spigot
+chmod 755 /usr/bin/attachspigot
