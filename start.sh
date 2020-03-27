@@ -26,7 +26,14 @@ fi
 
 MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
-SERVPORT=${SPORT:-0}
+
+# randomize port if sport is not set
+if [ -n $SPORT ]; then
+    SERVPORT="$SPORT"
+else
+    SERVPORT="$(random 2802 25566)"
+    echo "the port is $SERVPORT"
+fi
 
 echo "using minecraft version $MINECRAFTVERSION"
 
