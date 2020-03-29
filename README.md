@@ -1,4 +1,4 @@
-#Spigot docker image
+# Spigot docker image
 this is a spigot docker image. it's far from finished but I'm working on it. 
 It features automatic plugin install, spigot updating and cloud saving. 
 
