@@ -5,7 +5,7 @@
 
 echo "installing instantMC"
 
-RAW="https://raw.githubusercontent.com/paperbenni/instantMC/master/"
+RAW="https://raw.githubusercontent.com/paperbenni/instantMC/master"
 
 if ! grep -qi 'alpine' /etc/os-release; then
     echo "this is currently only supported on alpine"
