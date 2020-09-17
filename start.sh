@@ -1,6 +1,5 @@
 #!/bin/bash
-if command -v apk && [ -z "$HOME" ]
-then
+if command -v apk && [ -z "$HOME" ]; then
     export HOME=/home/user
     HOME=/home/user
 fi
@@ -32,7 +31,11 @@ MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 
 # randomize port if sport is not set
 if [ -n "$SPORT" ]; then
-    SERVPORT="$SPORT"
+    if [ "$SPORT" -eq "$SPORT" ]; then
+        SERVPORT="$SPORT"
+    else
+        echo "no valid serveo port found"
+    fi
 else
     SERVPORT="$(random 2802 25566)"
     echo "the port is $SERVPORT"
@@ -64,12 +67,17 @@ cat ~/.config/rclone/rclone.conf
 
 # handle tcp tunneling and the web server
 mkdir ~/.ssh
-ssh-keyscan -H -p 2222 paperbenni.mooo.com >>~/.ssh/known_hosts
+ssh-keyscan -H -p 2222 mc.paperbenni.xyz >>~/.ssh/known_hosts
 
+if [ -n "$SERVPORT" ]
+then
 while :; do
     mpm tunnel "$SERVPORT"
     sleep 2
 done &
+else
+    echo "skipping serveo"
+fi
 
 #download world data from dropbox
 cd "$HOME" || exit 1
