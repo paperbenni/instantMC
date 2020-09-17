@@ -1,8 +1,11 @@
 #!/bin/bash
-export HOME=/home/user
-HOME=/home/user
+if command -v apk && [ -z "$HOME" ]
+then
+    export HOME=/home/user
+    HOME=/home/user
+fi
 
-cd
+cd || exit 1
 echo "home dir: $HOME"
 echo "current dir: $(pwd)"
 #import functions
@@ -28,7 +31,7 @@ MEGAMAIL=${MEGAMAIL:=mineglory@protonmail.com}
 MEGAHASH=${MEGAHASH:=-AS_uLQGedO78_JXPwTtecPrxEpicGCRKfXw2w}
 
 # randomize port if sport is not set
-if [ -n $SPORT ]; then
+if [ -n "$SPORT" ]; then
     SERVPORT="$SPORT"
 else
     SERVPORT="$(random 2802 25566)"
@@ -37,9 +40,9 @@ fi
 
 echo "using minecraft version $MINECRAFTVERSION"
 
-cd
+cd || exit 1
 mkdir -p .config/rclone
-cd .config/rclone
+cd .config/rclone || exit 1
 
 if [ -z "$DROPTOKEN" ]; then
     rcloud mineglory
@@ -50,10 +53,10 @@ else
     touch rclone.conf
     pb rclone/dropbox
     addbox "$DROPTOKEN" "mineglory"
-    HCLOUDNAME="dropbox"
+    export HCLOUDNAME="dropbox"
 fi
 
-cd
+cd || exit 1
 cat .config/rclone/rclone.conf
 
 rclogin mineglory "$USERNAME" "$PASSWORD"
@@ -69,12 +72,12 @@ while :; do
 done &
 
 #download world data from dropbox
-cd $HOME
+cd "$HOME" || exit 1
 rdl spigot
-cd $HOME
+cd "$HOME" || exit 1
 mkdir -p spigot/plugins
 rm -rf spigot/logs
-cd spigot
+cd spigot || exit 1
 
 # install plugin
 rm plugins/*.mpm
@@ -89,10 +92,10 @@ cd ..
 while :; do
 
     #default op user
-    cd ~/spigot
+    cd ~/spigot || exit 1
     mpm op "${MCNAME:-Heinz007}"
     cat ops.json
-    cd ~/spigot
+    cd ~/spigot || exit 1
 
     # execute spigot.jar
     sleep 1
@@ -116,7 +119,7 @@ echo "backup loop starting"
 # copy it so it doesnt upload the copy that gets written to
 while :; do
 
-    sleep ${BACKUPTIME:-30}m
+    sleep "${BACKUPTIME:-30}"m
     if pgrep rclone; then
         echo "rclone still running"
         continue
@@ -124,10 +127,10 @@ while :; do
 
     echo "starting backup process"
     rm -rf ~/spigot/logs
-    cd ~
+    cd ~ || exit 1
     mkdir uploader
     cp -r spigot uploader/spigot
-    cd uploader/spigot
+    cd uploader/spigot || exit 1
     rm plugins/*.mpm
     rm plugins/*.jar
     rm spigot.jar
@@ -135,7 +138,7 @@ while :; do
     cd ..
     rupl spigot
     rm -rf spigot
-    cd ~/
+    cd ~/ || exit 1
     echo "restarting backup loop"
     sleep 2
 done
