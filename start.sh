@@ -95,6 +95,10 @@ mpm install
 
 cd ..
 
+if pgrep java; then
+    export JAVARUNNING="true"
+fi
+
 # start spigot
 while :; do
 
@@ -113,7 +117,14 @@ while :; do
         sed -i 's/motd=.*/motd='"$MCMOTD"'/g' server.properties
     fi
 
-    mpm start "$MCMEMORY"
+    if [ -n "$JAVARUNNING" ]; then
+        mpm start "$MCMEMORY"
+    else
+        mpm start "$MCMEMORY" &
+        while pgrep java; do
+            sleep 5
+        done
+    fi
     echo "spigot exited"
     # move cache to save cloud storage
 done &
