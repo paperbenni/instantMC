@@ -69,12 +69,11 @@ cat ~/.config/rclone/rclone.conf
 mkdir ~/.ssh
 ssh-keyscan -H -p 2222 mc.paperbenni.xyz >>~/.ssh/known_hosts
 
-if [ -n "$SERVPORT" ]
-then
-while :; do
-    mpm tunnel "$SERVPORT"
-    sleep 2
-done &
+if [ -n "$SERVPORT" ]; then
+    while :; do
+        mpm tunnel "$SERVPORT"
+        sleep 2
+    done &
 else
     echo "skipping serveo"
 fi
@@ -123,11 +122,14 @@ sleep 10
 
 echo "backup loop starting"
 
+BACKUPTIME="${BACKUPTIME:-30}m"
+echo "backing up every ${BACKUPTIME}"
+
 # upload spigot folder every 30 min
 # copy it so it doesnt upload the copy that gets written to
 while :; do
 
-    sleep "${BACKUPTIME:-30}"m
+    sleep "$BACKUPTIME"
     if pgrep rclone; then
         echo "rclone still running"
         continue
