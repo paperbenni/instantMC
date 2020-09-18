@@ -121,6 +121,7 @@ while :; do
         mpm start "$MCMEMORY"
     else
         mpm start "$MCMEMORY" &
+        sleep 10
         while pgrep java; do
             sleep 5
         done
