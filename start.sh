@@ -65,11 +65,10 @@ cat .config/rclone/rclone.conf
 rclogin mineglory "$USERNAME" "$PASSWORD"
 cat ~/.config/rclone/rclone.conf
 
-# handle tcp tunneling and the web server
-mkdir ~/.ssh
-ssh-keyscan -H -p 2222 mc.paperbenni.xyz >>~/.ssh/known_hosts
-
 if [ -n "$SERVPORT" ]; then
+    # handle tcp tunneling and the web server
+    mkdir ~/.ssh
+    ssh-keyscan -H -p 2222 mc.paperbenni.xyz >>~/.ssh/known_hosts
     while :; do
         mpm tunnel "$SERVPORT"
         sleep 2
